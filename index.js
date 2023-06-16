@@ -54,33 +54,33 @@ async function run() {
             res.send(result)
         })
         //-----------------------fetching all Cart data-------------------------------------
-        app.get('/cart/:email',  async (req, res) => {
+        app.get('/cart/:email', async (req, res) => {
             const email = req.params.email;
             if (!email) {
-              return res.send([])
-       }
-            
+                return res.send([])
+            }
+
             const query = { email: email };
             const result = await cartCollection.find(query).toArray();
-      
+
             res.send(result)
-          })
+        })
         //----------------------deleting from the cart -------------------------
         app.delete('/cart/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(' delete from database', id);
+            //console.log(' delete from database', id);
             const query = { _id: new ObjectId(id) }
 
             const result = await cartCollection.deleteOne(query);
             res.send(result);
         })
-      
+
         // --------------Add task to cart to complete by user later--------------------
-    app.post('/cart', async (req, res) => {
-        const newTask = req.body;
-        const result = await cartCollection.insertOne(newTask)  
-        res.send(result)
-      })
+        app.post('/cart', async (req, res) => {
+            const newTask = req.body;
+            const result = await cartCollection.insertOne(newTask)
+            res.send(result)
+        })
         //----------------making admin-----------------------
         app.patch('/users/admin/:id', async (req, res) => {
             const _id = req.params.id;
@@ -88,21 +88,21 @@ async function run() {
             const updateDoc = { $set: { role: 'admin' } }
             const result = await user.updateOne(filter, updateDoc)
             res.send(result)
-          })
-          // --------------Add task--------------------
-    app.post('/addTask', async (req, res) => {
-        const newClass = req.body;
-        const result = await taskCollection.insertOne(newClass)
-  
-        res.send(result)
-      })
-// --------------------------------deleting user-------------------
-app.delete('/deleteUser/:id', async (req, res) => {
-    const id = req.params.id
-    const query = { _id: new ObjectId(id) }
-    const result = await user.deleteOne(query);
-    res.send(result)
-  })
+        })
+        // --------------Add task--------------------
+        app.post('/addTask', async (req, res) => {
+            const newClass = req.body;
+            const result = await taskCollection.insertOne(newClass)
+
+            res.send(result)
+        })
+        // --------------------------------deleting user-------------------
+        app.delete('/deleteUser/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await user.deleteOne(query);
+            res.send(result)
+        })
         //--------------Post request for saving all user details into database-------------------------------
         app.post('/user', async (req, res) => {
             const item = req.body
@@ -115,16 +115,16 @@ app.delete('/deleteUser/:id', async (req, res) => {
             res.send(result)
         })
 
-        
+
         //---------------------Updating the task by admin---------------------------
         app.patch('/updatetask/:id', async (req, res) => {
             const id = req.params.id;
             const task = req.body;
-            console.log(id, task);
+            //console.log(id, task);
 
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true }
-            const updatedtoy = {
+            const updatedtask = {
                 $set: {
                     task_name: task.task_name,
                     task_deadline: task.task_deadline,
@@ -132,14 +132,49 @@ app.delete('/deleteUser/:id', async (req, res) => {
                 }
             }
 
-            const result = await taskCollection.updateOne(filter, updatedtoy, options);
+            const result = await taskCollection.updateOne(filter, updatedtask, options);
+            res.send(result);
+
+        })
+        //---------------------Updating the task complete number by user---------------------------
+        app.patch('/number/:id', async (req, res) => {
+            const id = req.params.id;
+            const number = req.body;
+            const update=parseInt( number.total_completed)+1;
+            //console.log(update);
+
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const taskupdate = {
+                $set: {
+                    total_completed: update
+                }
+            }
+
+            const result = await taskCollection.updateOne(filter, taskupdate, options);
+            res.send(result);
+
+        })
+        //---------------------Updating the task complete Status by user---------------------------
+        app.patch('/complete/:id', async (req, res) => {
+            const id = req.params.id;
+            //console.log(id);
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const taskupdate = {
+                $set: {
+                    status: 'completed'
+                }
+            }
+
+            const result = await cartCollection.updateOne(filter, taskupdate, options);
             res.send(result);
 
         })
         //-------------------------approving task by admin--------------------------
         app.patch('/approveTask/:id', async (req, res) => {
             const id = req.params.id;
-            
+
 
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true }
@@ -153,10 +188,10 @@ app.delete('/deleteUser/:id', async (req, res) => {
             res.send(result);
 
         })
-//-----------------------delete task--------------------
+        //-----------------------delete task--------------------
         app.delete('/tasks/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(' delete from database', id);
+            //console.log(' delete from database', id);
             const query = { _id: new ObjectId(id) }
 
             const result = await taskCollection.deleteOne(query);
@@ -167,7 +202,7 @@ app.delete('/deleteUser/:id', async (req, res) => {
 
 
         await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        //console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
 
     }
@@ -183,5 +218,5 @@ app.get('/', (req, res) => {
     res.send('Task manager is running ')
 })
 app.listen(port, () => {
-    console.log(`TaskManager is running on port ${port}`)
+    //console.log(`TaskManager is running on port ${port}`)
 })
